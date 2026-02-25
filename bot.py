@@ -16,6 +16,46 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ---------------- UTIL FUNCTIONS ----------------
+def archive_thread():
+    print("Archiving...")
+
+def extract_event_date(thread):
+    # TODO: parse and return date, now returned as default currently
+    return datetime.now().date()
+
+# ---------------- DAILY AUTO-ARCHIVE ----------------
+#TODO: change to 24 after successful testing
+@tasks.loop(minutes=5)
+async def daily_archive():
+    print("Running daily archive...")
+    config = load_config()
+    today = datetime.now().date()
+
+    for guild_id_str, channels in config.items():
+        guild = bot.get_guild(int(guild_id_str))
+        if not guild:
+            continue
+
+        forum_channel = guild.get_channel(int(channels["forum"]))
+        archive_channel = guild.get_channel(int(channels["archive"]))
+        if not forum_channel or not archive_channel:
+            continue
+
+        for thread in forum_channel.threads:
+            event_date = extract_event_date(thread.name)
+            if event_date and event_date < today:
+                archive_thread()
+            elif not event_date:
+                print(f"Skipping (no valid date): {thread.name}")
+
+# ---------------- ON READY ----------------
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    if not daily_archive.is_running():
+        daily_archive.start()
+
 # ---------------- BOT SETUP COMMAND FOR SERVER ----------------
 @bot.command(name="setupArchiveBot")
 @commands.has_permissions(administrator=True)
