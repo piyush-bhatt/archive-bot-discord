@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from config import load_config, save_config
 from archiver import archive_thread_to_text
+from utils import extract_date
 
 # ---------------- ENV VARIABLES ----------------
 load_dotenv()
@@ -16,11 +17,6 @@ intents.messages = True
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-
-# ---------------- UTIL FUNCTIONS ----------------
-def extract_event_date(thread):
-    # TODO: parse and return date, now returned as default currently
-    return datetime.now().date()
 
 # ---------------- DAILY AUTO-ARCHIVE ----------------
 #TODO: change to 24 after successful testing
@@ -41,7 +37,7 @@ async def daily_archive():
             continue
 
         for thread in forum_channel.threads:
-            event_date = extract_event_date(thread.name)
+            event_date = extract_date(thread.name)
             if event_date and event_date < today:
                 await archive_thread_to_text(thread, archive_channel)
             elif not event_date:
