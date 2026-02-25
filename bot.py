@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from config import load_config, save_config
+from archiver import archive_thread_to_text
 
 # ---------------- ENV VARIABLES ----------------
 load_dotenv()
@@ -17,9 +18,6 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ---------------- UTIL FUNCTIONS ----------------
-def archive_thread():
-    print("Archiving...")
-
 def extract_event_date(thread):
     # TODO: parse and return date, now returned as default currently
     return datetime.now().date()
@@ -45,7 +43,7 @@ async def daily_archive():
         for thread in forum_channel.threads:
             event_date = extract_event_date(thread.name)
             if event_date and event_date < today:
-                archive_thread()
+                await archive_thread_to_text(thread, archive_channel)
             elif not event_date:
                 print(f"Skipping (no valid date): {thread.name}")
 
