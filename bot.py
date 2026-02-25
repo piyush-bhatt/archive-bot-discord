@@ -5,10 +5,14 @@ from dotenv import load_dotenv
 from config import load_config, save_config
 from archiver import archive_thread_to_text
 from utils import extract_date
+from keep_alive import keep_alive
 
 # ---------------- ENV VARIABLES ----------------
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+
+# ---------------- WEB SERVER TO KEEP BOT ALIVE ----------------
+keep_alive()
 
 # ---------------- BOT SETUP ----------------
 intents = discord.Intents.default()
