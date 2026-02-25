@@ -24,8 +24,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ---------------- DAILY AUTO-ARCHIVE ----------------
-#TODO: change to 24 after successful testing
-@tasks.loop(minutes=5)
+@tasks.loop(hours=24)
 async def daily_archive():
     print("Running daily archive...")
     config = load_config()
