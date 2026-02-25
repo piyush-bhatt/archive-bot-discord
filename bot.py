@@ -16,9 +16,13 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ---------------- ARCHIVE FUNCTION ----------------
+# ---------------- UTIL FUNCTIONS ----------------
 def archive_thread():
     print("Archiving...")
+
+def extract_event_date(thread):
+    # TODO: parse and return date, now returned as default currently
+    return datetime.now().date()
 
 # ---------------- DAILY AUTO-ARCHIVE ----------------
 #TODO: change to 24 after successful testing
