@@ -16,6 +16,10 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+# ---------------- ARCHIVE FUNCTION ----------------
+def archive_thread():
+    print("Archiving...")
+
 # ---------------- DAILY AUTO-ARCHIVE ----------------
 #TODO: change to 24 after successful testing
 @tasks.loop(minutes=5)
@@ -37,7 +41,7 @@ async def daily_archive():
         for thread in forum_channel.threads:
             event_date = extract_event_date(thread.name)
             if event_date and event_date < today:
-                await archive_thread_to_text(thread, archive_channel)
+                archive_thread()
             elif not event_date:
                 print(f"Skipping (no valid date): {thread.name}")
 
