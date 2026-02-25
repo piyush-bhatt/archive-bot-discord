@@ -31,5 +31,30 @@ async def setup(ctx, forum_channel_id: int, archive_channel_id: int):
     save_config(config)
     await ctx.send(f"ArchiveBot setup complete!\nForum channel ID: {forum_channel_id}\nArchive channel ID: {archive_channel_id}")
 
+# ---------------- DAILY AUTO-ARCHIVE ----------------
+#TODO: change to 24 after successful testing
+@tasks.loop(minutes=5)
+async def daily_archive():
+    print("Running daily archive...")
+    config = load_config()
+    today = datetime.now().date()
+
+    for guild_id_str, channels in config.items():
+        guild = bot.get_guild(int(guild_id_str))
+        if not guild:
+            continue
+
+        forum_channel = guild.get_channel(int(channels["forum"]))
+        archive_channel = guild.get_channel(int(channels["archive"]))
+        if not forum_channel or not archive_channel:
+            continue
+
+        for thread in forum_channel.threads:
+            event_date = extract_event_date(thread.name)
+            if event_date and event_date < today:
+                await archive_thread_to_text(thread, archive_channel)
+            elif not event_date:
+                print(f"Skipping (no valid date): {thread.name}")
+
 # ---------------- RUN BOT ----------------
 bot.run(TOKEN)
