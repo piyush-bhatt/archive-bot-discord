@@ -47,12 +47,20 @@ async def daily_archive():
             elif not event_date:
                 print(f"Skipping (no valid date): {thread.name}")
 
-# ---------------- ON READY ----------------
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user}")
-    if not daily_archive.is_running():
-        daily_archive.start()
+# ---------------- MANUAL ARCHIVE COMMAND ----------------
+@bot.command(name="archive")
+async def archive_command(ctx):
+    config = load_config().get(str(ctx.guild.id))
+    if not config:
+        await ctx.send("Bot not set up for this server. Use `!setupArchiveBot <forum_channel_id> <archive_channel_id>` first.")
+        return
+
+    archive_channel = ctx.guild.get_channel(int(config["archive"]))
+
+    if isinstance(ctx.channel, discord.Thread):
+        await archive_thread_to_text(ctx.channel, archive_channel)
+    else:
+        await ctx.send("Use this command inside an event thread.")
 
 # ---------------- BOT SETUP COMMAND FOR SERVER ----------------
 @bot.command(name="setupArchiveBot")
@@ -68,6 +76,13 @@ async def setup(ctx, forum_channel_id: int, archive_channel_id: int):
     }
     save_config(config)
     await ctx.send(f"ArchiveBot setup complete!\nForum channel ID: {forum_channel_id}\nArchive channel ID: {archive_channel_id}")
+
+# ---------------- ON READY ----------------
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    if not daily_archive.is_running():
+        daily_archive.start()
 
 # ---------------- RUN BOT ----------------
 bot.run(TOKEN)
