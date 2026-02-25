@@ -1,11 +1,12 @@
 import os
 import discord
 from discord.ext import commands, tasks
+from datetime import datetime
 from dotenv import load_dotenv
-from config import load_config, save_config
-from archiver import archive_thread_to_text
-from utils import extract_date
 from keep_alive import keep_alive
+from config import load_config, save_config
+from utils import extract_event_date
+from archiver import archive_thread_to_text
 
 # ---------------- ENV VARIABLES ----------------
 load_dotenv()
@@ -23,8 +24,7 @@ intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # ---------------- DAILY AUTO-ARCHIVE ----------------
-#TODO: change to 24 after successful testing
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=24)
 async def daily_archive():
     print("Running daily archive...")
     config = load_config()
@@ -41,7 +41,7 @@ async def daily_archive():
             continue
 
         for thread in forum_channel.threads:
-            event_date = extract_date(thread.name)
+            event_date = extract_event_date(thread.name)
             if event_date and event_date < today:
                 await archive_thread_to_text(thread, archive_channel)
             elif not event_date:
@@ -62,7 +62,7 @@ async def archive_command(ctx):
     else:
         await ctx.send("Use this command inside an event thread.")
 
-# ---------------- BOT SETUP COMMAND FOR SERVER ----------------
+# ---------------- SETUP COMMAND FOR ADMINS ----------------
 @bot.command(name="setupArchiveBot")
 @commands.has_permissions(administrator=True)
 async def setup(ctx, forum_channel_id: int, archive_channel_id: int):
