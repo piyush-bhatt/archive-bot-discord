@@ -16,21 +16,6 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# ---------------- BOT SETUP COMMAND FOR SERVER ----------------
-@bot.command(name="setupArchiveBot")
-@commands.has_permissions(administrator=True)
-async def setup(ctx, forum_channel_id: int, archive_channel_id: int):
-    """
-    Admin command: !setupArchiveBot <forum_channel_id> <archive_channel_id>
-    """
-    config = load_config()
-    config[str(ctx.guild.id)] = {
-        "forum": forum_channel_id,
-        "archive": archive_channel_id
-    }
-    save_config(config)
-    await ctx.send(f"ArchiveBot setup complete!\nForum channel ID: {forum_channel_id}\nArchive channel ID: {archive_channel_id}")
-
 # ---------------- DAILY AUTO-ARCHIVE ----------------
 #TODO: change to 24 after successful testing
 @tasks.loop(minutes=5)
@@ -55,6 +40,28 @@ async def daily_archive():
                 await archive_thread_to_text(thread, archive_channel)
             elif not event_date:
                 print(f"Skipping (no valid date): {thread.name}")
+
+# ---------------- ON READY ----------------
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+    if not daily_archive.is_running():
+        daily_archive.start()
+
+# ---------------- BOT SETUP COMMAND FOR SERVER ----------------
+@bot.command(name="setupArchiveBot")
+@commands.has_permissions(administrator=True)
+async def setup(ctx, forum_channel_id: int, archive_channel_id: int):
+    """
+    Admin command: !setupArchiveBot <forum_channel_id> <archive_channel_id>
+    """
+    config = load_config()
+    config[str(ctx.guild.id)] = {
+        "forum": forum_channel_id,
+        "archive": archive_channel_id
+    }
+    save_config(config)
+    await ctx.send(f"ArchiveBot setup complete!\nForum channel ID: {forum_channel_id}\nArchive channel ID: {archive_channel_id}")
 
 # ---------------- RUN BOT ----------------
 bot.run(TOKEN)
